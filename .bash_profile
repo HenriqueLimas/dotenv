@@ -33,6 +33,10 @@ alias gcount="git shortlog -sn"
 alias gcurrentbranch="git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'"
 alias restartmic="sudo killall coreaudiod"
 
+alias myip="echo $(ifconfig | grep "inet " | grep -Fv 127.0.0.1 | awk '{print $2}')"
+alias prettyjson='python -m json.tool'
+alias chrome='open -a Google\ Chrome --args'
+
 alias rn="react-native"
 alias rni="react-native install"
 alias rnl="react-native link"
