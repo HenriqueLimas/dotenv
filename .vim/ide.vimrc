@@ -1,6 +1,8 @@
 " IDE
 
 set clipboard=unnamed
+
+
 set number " Show current line number
 set tabstop=2
 set shiftwidth=2
@@ -11,8 +13,15 @@ set hlsearch
 set showcmd
 
 set wildignore+=*/tmp/*,*.so,*.swp,*.zip,*/node_modules/*
+set directory=$HOME/.vim/swapfiles
+
+" ACK
+nnoremap <Leader>a :Ack!<Space>
 
 let g:fuzzy_ignore = "*.png;*.PNG;*.JPG;*.jpg;*.GIF;*.gif;vendor/**;coverage/**;tmp/**;rdoc/**;node_modules/**"
+
+" netrw
+let g:netrw_localrmdir='rm -r'
 
 " Remove trailing white spacing in the file
 function! CustomStripWhitespace()
@@ -35,23 +44,27 @@ endfunction
 command! W call CustomStripWhitespace()
 
 autocmd StdinReadPre * let s:std_in=1
-autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | endif
-autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 autocmd BufWritePost,FileWritePost *.go execute 'Lint' | cwindow
 
-map <C-k> :NERDTreeToggle<CR>
 
 "" Syntax highlighting
-syntax on
-set background=dark
-colorscheme peaksea
+colorscheme gruvbox
+set encoding=utf-8
+set t_Co=256
+set fillchars+=stl:\ ,stlnc:\
+if !has('nvim')
+  set term=xterm-256color
+endif
+set termencoding=utf-8
 
 "" Enable mouse
-set ttymouse=xterm2
+if !has('nvim')
+  set ttymouse=xterm2
+endif
 se mouse=a
 
 "" Omnicompletion
-set omnifunc=syntaxcomplete#Complete
+" set omnifunc=syntaxcomplete#Complete
 
 "" Split management
 set splitright                                                  "Split to the right
@@ -103,71 +116,22 @@ nnoremap <leader>b :Unite -quick-match buffer<cr>
 let g:airline#extensions#tabline#enabled=1
 let g:airline_powerline_fonts=1
 
-"" NERDTree
-autocmd vimenter * NERDTree                               "Open NERDTree on vim start
-autocmd VimEnter * wincmd p
-map <leader>n :NERDTreeToggle<CR>
-
-
-function! NERDTreeHighlightFile(extension, fg, bg, guifg, guibg)
-    exec 'autocmd filetype nerdtree highlight ' . a:extension .' ctermbg='. a:bg .' ctermfg='. a:fg .' guibg='. a:guibg .' guifg='. a:guifg
-    exec 'autocmd filetype nerdtree syn match ' . a:extension .' #^\s\+.*'. a:extension .'$#'
-endfunction
-
-call NERDTreeHighlightFile('yml', 'yellow', 'none', 'yellow', '#151515')
-call NERDTreeHighlightFile('json', 'yellow', 'none', 'yellow', '#151515')
-call NERDTreeHighlightFile('html', 'yellow', 'none', 'yellow', '#151515')
-call NERDTreeHighlightFile('css', 'cyan', 'none', 'cyan', '#151515')
-call NERDTreeHighlightFile('js', 'Red', 'none', '#ffa500', '#151515')
-call NERDTreeHighlightFile('php', 'Magenta', 'none', '#ff00ff', '#151515')
-
-let NERDTreeWinPos='right'                                "NERDTree window to the right
-let NERDTreeAutoDeleteBuffer=1                            "Delete old buffer when renaming or moving a file
-let NERDTreeIgnore = ['\.pyc$']                           "Hide .pyc files
-
 "" Syntastic
 set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
-
-"" Ctrl P
-let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
-
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
+let syntastic_mode_map = { 'passive_filetypes': ['html', 'cpp'] }
 
-"" Fugitive
-nnoremap <silent> <leader>gs :Gstatus<CR>
-nnoremap <silent> <leader>gd :Gdiff<CR>
-nnoremap <silent> <leader>gc :Gcommit<CR>
-nnoremap <silent> <leader>gb :Gblame<CR>
-nnoremap <silent> <leader>gl :Glog<CR>
-nnoremap <silent> <leader>gp :Git push<CR>
-nnoremap <silent> <leader>gw :Gwrite<CR>
-nnoremap <silent> <leader>gr :Gremove<CR>
+"" Ctrl P
+let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
 
-"" EasyAlign
-" Start interactive EasyAlign in visual mode (e.g. vip<Enter>)
-vmap <Enter> <Plug>(EasyAlign)
-
-" Start interactive EasyAlign for a motion/text object (e.g. gaip)
-nmap ga <Plug>(EasyAlign)
-
-""" TagList settings
-"let tlist_auto_highlight_tag      = 1
-"let tlist_auto_open               = 0
-"let tlist_auto_update             = 1
-"let tlist_compact_format          = 1
-"let tlist_gainfocus_on_toggleopen = 1
-"let tlist_show_one_file           = 1
-"let tlist_sort_type               = "name"
-"let tlist_use_right_window        = 0
-"let tlist_php_settings            = 'php;c:Classes;i:Interfaces;f:Functions'
-"
-"noremap <leader>l :TlistToggle<CR>
-
+" Prettier
+let g:prettier#autoformat = 0
+autocmd BufWritePre *.js,*.jsx,*.mjs,*.ts,*.tsx,*.css,*.less,*.scss,*.json,*.graphql,*.vue,*.yaml,*.html PrettierAsync
 
 "" Bclose
 noremap <leader>q :Bclose<CR>
@@ -195,3 +159,9 @@ inoremap [] []
 inoremap {{<space> {{  }}<left><left><left>
 inoremap {%<space> {%  %}<left><left><left>
 inoremap {#<space> {#  #}<left><left><left>
+
+let g:syntastic_java_checkers=['javac']
+let g:syntastic_java_javac_config_file_enabled = 1
+
+" COC
+source ~/.vim/coc.vimrc
